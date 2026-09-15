@@ -1,7 +1,7 @@
 Developer API
 #############
 
-.. module:: focalfire.dev
+.. module:: focal.dev
 
 The shared machinery underneath the three modules: the contracts they all obey, the
 third-party engines they drive, cross-module helpers, and the command-line entry

@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 from dictys.net import stat
 
-from focalfire.temporal import (
+from focal.temporal import (
     EpisodeDynamics,
     ForceWavePhases,
     RegulatoryPhases,

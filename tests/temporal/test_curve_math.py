@@ -1,4 +1,4 @@
-"""Maths of :class:`focalfire.temporal._curves.SmoothedCurvesGRN`.
+"""Maths of :class:`focal.temporal._curves.SmoothedCurvesGRN`.
 
 These tests use hand-built curves whose characteristics can be derived on
 paper (or cross-checked against an independent numpy implementation), so a
@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from focalfire.temporal import SmoothedCurvesGRN
+from focal.temporal import SmoothedCurvesGRN
 LOG10E = 1.0 / np.log(10.0)
 
 #: numpy renamed trapz -> trapezoid in 2.0

@@ -1,14 +1,14 @@
 User API
 ########
 
-.. module:: focalfire.user
+.. module:: focal.user
 
-The public surface of the three FocalFire modules. Import :mod:`focalfire` as::
+The public surface of the three Focal modules. Import :mod:`focal` as::
 
-    import focalfire as ff
+    import focal as ff
 
-Each module's entry point is its manager: :class:`~focalfire.temporal.TemporalManager`,
-:class:`~focalfire.state_specific.StateSpecificManager`. Figures are not a separate
+Each module's entry point is its manager: :class:`~focal.temporal.TemporalManager`,
+:class:`~focal.state_specific.StateSpecificManager`. Figures are not a separate
 namespace — every plotting function is exported by the module whose results it draws.
 
 .. toctree::

@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 import pytest
 from scipy.ndimage import gaussian_filter1d
 
-from focalfire.temporal import SmoothedCurvesChromatin
+from focal.temporal import SmoothedCurvesChromatin
 from conftest import BINDING_ROWS, EXPECTED_BINDING, write_binding_windows
 
 ALL_TFS = ["TFA", "TFB", "TFC"]

@@ -7,7 +7,7 @@ Development install
 .. code-block:: bash
 
     git clone --recurse-submodules https://github.com/sachha-naksha/FocalFire
-    cd FocalFire
+    cd Focal
     pip install -e ".[dev,docs]"
 
 ``--recurse-submodules`` brings in ``docs/notebooks``. If you cloned without it,
@@ -16,26 +16,26 @@ Development install
 Where code goes
 ===============
 
-FocalFire is three modules in one package. A new function belongs in the module whose
+Focal is three modules in one package. A new function belongs in the module whose
 question it answers, not in a layer named after its technique:
 
-``focalfire.temporal``
+``focal.temporal``
     How does regulation change *along* a trajectory?
 
-``focalfire.state_specific``
+``focal.state_specific``
     What separates two *fixed* states, and what happens if we perturb it?
 
-``focalfire.cross_prediction``
+``focal.cross_prediction``
     Do programs learned on one dataset *transfer* to another?
 
 Two rules follow from that:
 
 * **Figures are colocated.** A plotting function lives in the file that owns its
-  subject — force landscapes with :class:`~focalfire.temporal.TFForceWaves`, phase
-  heatmaps with the phase classes. There is no ``focalfire.plotting``.
+  subject — force landscapes with :class:`~focal.temporal.TFForceWaves`, phase
+  heatmaps with the phase classes. There is no ``focal.plotting``.
 * **Shared code moves down, never sideways.** If two modules need the same helper it
-  goes in :mod:`focalfire.utils` or :mod:`focalfire.base`, not into whichever module
-  needed it first. Third-party engines go behind :mod:`focalfire.backends`.
+  goes in :mod:`focal.utils` or :mod:`focal.base`, not into whichever module
+  needed it first. Third-party engines go behind :mod:`focal.backends`.
 
 Files are private (``_curves.py``, ``_phases.py``); the public surface is whatever the
 subpackage ``__init__`` re-exports. See ``references/module_structure_plan.md`` for the
@@ -60,7 +60,7 @@ Conventions carried over from ``tests/temporal/README.md``:
 Notebooks
 =========
 
-Notebooks live in `focalfire_notebooks
+Notebooks live in `focal_notebooks
 <https://github.com/sachha-naksha/focalfire_notebooks>`_, not in this repository.
 Commit them **with their outputs** — the docs render stored outputs and never execute
 a cell, so a stripped notebook renders as an empty page. Run ``add_titles.py`` there

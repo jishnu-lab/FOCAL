@@ -19,7 +19,7 @@ import pandas as pd
 import pytest
 from dictys.net import stat
 
-from focalfire.temporal import SmoothedCurvesGRN
+from focal.temporal import SmoothedCurvesGRN
 from conftest import (
     CONSTANT_LCPM,
     GENES,

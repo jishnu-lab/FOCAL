@@ -1,4 +1,4 @@
-"""Sphinx configuration for FocalFire."""
+"""Sphinx configuration for Focal."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ from pathlib import Path
 _root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_root / "src"))
 
-project = "FocalFire"
+project = "Focal"
 copyright = "2026, Akanksha Sachan"
 author = "Akanksha Sachan"
 
 try:
-    from focalfire import __version__ as release
+    from focal import __version__ as release
 except ImportError:
     release = "0.1.0"
 version = release
@@ -27,7 +27,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
     "sphinx_design",
-    # Renders the notebooks pulled in from the focalfire_notebooks submodule.
+    # Renders the notebooks pulled in from the focal_notebooks submodule.
     "myst_nb",
 ]
 

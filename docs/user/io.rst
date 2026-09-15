@@ -1,14 +1,14 @@
 I/O
 ~~~
-Locating the data FocalFire reads, and reading it.
+Locating the data Focal reads, and reading it.
 
-.. module:: focalfire.io
-.. currentmodule:: focalfire
+.. module:: focal.io
+.. currentmodule:: focal
 
 Dataset locations live in a YAML file next to the notebooks, never inside the
 installed package::
 
-    from focalfire.io import DatasetPaths
+    from focal.io import DatasetPaths
     config = DatasetPaths.from_yaml("datasets.yaml")
 
 .. autosummary::

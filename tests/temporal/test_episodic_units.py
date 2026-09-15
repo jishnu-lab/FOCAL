@@ -1,4 +1,4 @@
-"""Module-level helper functions of ``focalfire.temporal._episodes``.
+"""Module-level helper functions of ``focal.temporal._episodes``.
 
 Everything here works on small hand-written frames whose expected output can be
 computed by hand (or from ``scipy`` directly), independently of dictys.
@@ -13,18 +13,18 @@ import pytest
 from scipy import stats
 from scipy.stats import hypergeom
 
-from focalfire.base import calculate_tf_episodic_enrichment
-from focalfire.temporal import (
+from focal.base import calculate_tf_episodic_enrichment
+from focal.temporal import (
     calculate_force_curves_parallel,
     filter_edges_by_significance_and_direction,
     get_episodic_grn_subset,
     get_unique_regs_by_target,
 )
-from focalfire.temporal._forces import (
+from focal.temporal._forces import (
     calculate_force_curves_chunk,
     filter_chunk_of_edges,
 )
-from focalfire.utils import create_balanced_chunks
+from focal.utils import create_balanced_chunks
 
 LOG10E = 1.0 / np.log(10.0)
 

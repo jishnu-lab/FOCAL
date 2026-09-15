@@ -1,8 +1,8 @@
-# FocalFire
+# Focal
 
-**FocalFire** (Functional and Interpretable Regulatory Encoding of cellular Fate) is an open-source toolkit that combines mechanistic gene regulatory networks (GRNs) with interpretable machine learning to focus dense state-specific and dynamic GRNs onto the regulatory components that govern cell fate decisions. It works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), matched or unmatched.
+**Focal** (Functional and Interpretable Regulatory Encoding of cellular Fate) is an open-source toolkit that combines mechanistic gene regulatory networks (GRNs) with interpretable machine learning to focus dense state-specific and dynamic GRNs onto the regulatory components that govern cell fate decisions. It works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), matched or unmatched.
 
-![FocalFire overview](docs/_static/img/fig1_091026.png)
+![Focal overview](docs/_static/img/fig1_091026.png)
 
 What it does:
 
@@ -15,7 +15,7 @@ The full description of all capabilities, the methods, the user and developer AP
 ## Notebooks
 
 The analysis notebooks live in a companion repository,
-[**focalfire_notebooks**](https://github.com/sachha-naksha/focalfire_notebooks), and are
+[**focal_notebooks**](https://github.com/sachha-naksha/focalfire_notebooks), and are
 pulled in here as a git submodule at `docs/notebooks` so the documentation can render
 them. Clone with them:
 
@@ -36,7 +36,7 @@ The submodule is optional — the package installs and the API docs build withou
 User guide, API reference and the rendered notebooks are built with Sphinx and hosted on
 **Read the Docs**. The build is configured by `.readthedocs.yml`, which also tells Read the Docs to
 check out the `docs/notebooks` submodule. Point a project at this repository at
-[readthedocs.org](https://readthedocs.org/); with the slug `focalfire` the site lands at
+[readthedocs.org](https://readthedocs.org/); with the slug `focal` the site lands at
 [https://focalfire.readthedocs.io/](https://focalfire.readthedocs.io/).
 
 To build the HTML docs locally:

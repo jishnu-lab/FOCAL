@@ -1,19 +1,19 @@
 References
 ##########
 
-Methods FocalFire builds on
+Methods Focal builds on
 ===========================
 
 **Dictys** — Wang, L. *et al.* (2023).
   Dictys: dynamic gene regulatory network dissects developmental continuum with
   single-cell multi-omics. *Nature Methods* 20, 1368-1378.
   Supplies the per-window network reconstruction and the smoothing machinery behind
-  :class:`~focalfire.temporal.SmoothedCurvesGRN`.
+  :class:`~focal.temporal.SmoothedCurvesGRN`.
 
 **SLIDE** — Rahimikollu, J. *et al.* (2024).
   SLIDE: significant latent factor interaction discovery and exploration across
   biological domains. *Nature Methods* 21, 835-845.
-  Supplies the latent factors that FocalFire treats as cellular programs.
+  Supplies the latent factors that Focal treats as cellular programs.
 
 **CellOracle** — Kamimoto, K. *et al.* (2023).
   Dissecting cell identity via network inference and in silico gene perturbation.
