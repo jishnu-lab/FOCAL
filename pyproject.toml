@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "focal"
 version = "0.0.1"
-description = "Focal: Functional and Interpretable Regulatory Encoding of cell Fate decisions"
+description = "Focal: Factor-Outcome Coupling for Assessment of Linkages"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }

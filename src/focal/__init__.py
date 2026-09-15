@@ -1,4 +1,4 @@
-"""Focal: Functional and Interpretable Regulatory Encoding of cell Fate decisions.
+"""Focal: Factor-Outcome Coupling for Assessment of Linkages.
 
 Focal is three modules in one package, each answering a different question about
 regulation:
