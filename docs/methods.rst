@@ -22,8 +22,8 @@ knockout) versus unperturbed control populations.
 We implemented and tested Focal in Python (versions xx) and designed it for use in a Jupyter
 Notebook environment. Focal code is open source and available on GitHub at
 `github.com/jishnu-lab/FOCAL <https://github.com/jishnu-lab/FOCAL>`_ and
-`github.com/xxx <https://github.com/xxx>`_, along with detailed
-function descriptions and tutorials at ``<READ-THE-DOCS>``. Additionally, we provide a
+`github.com/jishnu-lab/FOCAL_notebooks <https://github.com/jishnu-lab/FOCAL_notebooks>`_, along with detailed
+function descriptions and tutorials at `focalfire.readthedocs.io <https://focalfire.readthedocs.io/>`_. Additionally, we provide a
 user-friendly web application at
 `pitt-csi.shinyapps.io/firefate <https://pitt-csi.shinyapps.io/firefate/>`_ that facilitates
 Focal analyses and enables
@@ -80,7 +80,7 @@ predictive performance.
 Before applying SLIDE, the single-cell RNA sequencing (scRNA-seq) data were preprocessed using the
 filtering and preprocessing functions provided in the SLIDE library
 (`github.com/jishnu-lab/SLIDE <https://github.com/jishnu-lab/SLIDE>`_) and the Focal GitHub repository
-(`github.com/jishnu-lab/xxxx <https://github.com/jishnu-lab/xxxx>`_), following standard best practices. First, genes with
+(`github.com/jishnu-lab/FOCAL <https://github.com/jishnu-lab/FOCAL>`_), following standard best practices. First, genes with
 zero unique molecular identifier (UMI) counts across all cells were removed, and mitochondrial and
 ribosomal genes were excluded from further analysis. Second, sparsity filtering was performed using
 the ``zeroFiltering`` function in the SLIDE library to remove genes with more than ``col_thresh``
