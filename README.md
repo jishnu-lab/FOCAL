@@ -10,7 +10,7 @@ What it does:
 - **Phase-resolved dynamic regulation.** Transition-window and episodic GRNs along pseudotime assign TF–target edges to regulatory phases inferred from pseudotemporal clustering, ordering waves of TF regulation and retaining the forces that stay invariant within each episode.
 - **Fate predisposition by transfer learning.** CPs learned from fate-switching perturbations (e.g. TF knockouts) versus controls stratify uncommitted populations in unperturbed data by their predicted fate bias.
 
-The full description of all capabilities, the methods, the user and developer API, and the rendered analysis notebooks are on Read the Docs: **[focalfire.readthedocs.io](https://focalfire.readthedocs.io/)**.
+The full description of all capabilities, the methods, the user and developer API, and the rendered analysis notebooks are on Read the Docs: **[focal-gifs.readthedocs.io](https://focal-gifs.readthedocs.io/)**.
 
 ## Notebooks
 
@@ -37,7 +37,7 @@ User guide, API reference and the rendered notebooks are built with Sphinx and h
 **Read the Docs**. The build is configured by `.readthedocs.yml`, which also tells Read the Docs to
 check out the `docs/notebooks` submodule. Point a project at this repository at
 [readthedocs.org](https://readthedocs.org/); with the slug `focal` the site lands at
-[https://focalfire.readthedocs.io/](https://focalfire.readthedocs.io/).
+[https://focal-gifs.readthedocs.io/](https://focal-gifs.readthedocs.io/).
 
 To build the HTML docs locally:
 

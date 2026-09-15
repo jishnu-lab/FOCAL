@@ -23,7 +23,7 @@ We implemented and tested Focal in Python (versions xx) and designed it for use 
 Notebook environment. Focal code is open source and available on GitHub at
 `github.com/jishnu-lab/FOCAL <https://github.com/jishnu-lab/FOCAL>`_ and
 `github.com/jishnu-lab/FOCAL_notebooks <https://github.com/jishnu-lab/FOCAL_notebooks>`_, along with detailed
-function descriptions and tutorials at `focalfire.readthedocs.io <https://focalfire.readthedocs.io/>`_. Additionally, we provide a
+function descriptions and tutorials at `focal-gifs.readthedocs.io <https://focal-gifs.readthedocs.io/>`_. Additionally, we provide a
 user-friendly web application at
 `pitt-csi.shinyapps.io/firefate <https://pitt-csi.shinyapps.io/firefate/>`_ that facilitates
 Focal analyses and enables
