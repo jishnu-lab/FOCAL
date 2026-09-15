@@ -72,7 +72,7 @@ Important resources
         :link-type: doc
 
         Analysis notebooks per module, from the companion
-        `focal_notebooks <https://github.com/sachha-naksha/focalfire_notebooks>`_
+        `FOCAL_notebooks <https://github.com/jishnu-lab/FOCAL_notebooks>`_
         repository.
 
     .. grid-item-card:: Contributing
@@ -82,7 +82,7 @@ Important resources
         Where new code goes, and the test conventions.
 
     .. grid-item-card:: Repository
-        :link: https://github.com/sachha-naksha/FocalFire
+        :link: https://github.com/jishnu-lab/FOCAL
         :link-type: url
 
         Source code, issues, and development on GitHub.

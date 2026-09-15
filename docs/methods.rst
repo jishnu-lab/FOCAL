@@ -21,7 +21,7 @@ knockout) versus unperturbed control populations.
 
 We implemented and tested Focal in Python (versions xx) and designed it for use in a Jupyter
 Notebook environment. Focal code is open source and available on GitHub at
-`github.com/sachha-naksha/FocalFire <https://github.com/sachha-naksha/FocalFire>`_ and
+`github.com/jishnu-lab/FOCAL <https://github.com/jishnu-lab/FOCAL>`_ and
 `github.com/xxx <https://github.com/xxx>`_, along with detailed
 function descriptions and tutorials at ``<READ-THE-DOCS>``. Additionally, we provide a
 user-friendly web application at

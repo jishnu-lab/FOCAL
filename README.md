@@ -15,12 +15,12 @@ The full description of all capabilities, the methods, the user and developer AP
 ## Notebooks
 
 The analysis notebooks live in a companion repository,
-[**focal_notebooks**](https://github.com/sachha-naksha/focalfire_notebooks), and are
+[**FOCAL_notebooks**](https://github.com/jishnu-lab/FOCAL_notebooks), and are
 pulled in here as a git submodule at `docs/notebooks` so the documentation can render
 them. Clone with them:
 
 ```bash
-git clone --recurse-submodules https://github.com/sachha-naksha/FocalFire
+git clone --recurse-submodules https://github.com/jishnu-lab/FOCAL
 ```
 
 If you already cloned without them:

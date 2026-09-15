@@ -6,7 +6,7 @@ Development install
 
 .. code-block:: bash
 
-    git clone --recurse-submodules https://github.com/sachha-naksha/FocalFire
+    git clone --recurse-submodules https://github.com/jishnu-lab/FOCAL
     cd Focal
     pip install -e ".[dev,docs]"
 
@@ -61,7 +61,7 @@ Notebooks
 =========
 
 Notebooks live in `focal_notebooks
-<https://github.com/sachha-naksha/focalfire_notebooks>`_, not in this repository.
+<https://github.com/jishnu-lab/FOCAL_notebooks>`_, not in this repository.
 Commit them **with their outputs** — the docs render stored outputs and never execute
 a cell, so a stripped notebook renders as an empty page. Run ``add_titles.py`` there
 after adding one, so it gets a page title and a sidebar link.

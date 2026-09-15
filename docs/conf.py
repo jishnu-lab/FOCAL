@@ -32,7 +32,7 @@ extensions = [
 ]
 
 # -- Notebooks ---------------------------------------------------------------
-# The notebooks live in their own repository (sachha-naksha/focalfire_notebooks),
+# The notebooks live in their own repository (jishnu-lab/FOCAL_notebooks),
 # checked out as a submodule at docs/notebooks. They are research records run on a
 # cluster against data that is not distributed, so they are NEVER executed here --
 # Sphinx renders the outputs stored in the .ipynb files as committed.
