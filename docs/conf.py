@@ -77,6 +77,11 @@ html_theme = "furo"
 html_title = f"{project} {release}"
 html_static_path = ["_static"]
 html_logo = "_static/img/logo.png"
+html_theme_options = {
+    "source_repository": "https://github.com/jishnu-lab/FOCAL",
+    "source_branch": "main",
+    "source_directory": "docs/",
+}
 
 nitpicky = False
 
