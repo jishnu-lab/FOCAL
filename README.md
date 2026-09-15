@@ -2,7 +2,7 @@
 
 **Focal** (Functional and Interpretable Regulatory Encoding of cellular Fate) is an open-source toolkit that combines mechanistic gene regulatory networks (GRNs) with interpretable machine learning to focus dense state-specific and dynamic GRNs onto the regulatory components that govern cell fate decisions. It works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), matched or unmatched.
 
-![Focal overview](docs/_static/img/fig1_091026.png)
+![Focal overview](docs/_static/img/fig1_091526.png)
 
 What it does:
 

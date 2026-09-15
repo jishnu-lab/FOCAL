@@ -2,7 +2,7 @@ Focal
 =========
 .. module:: focal
 
-.. image:: _static/img/fig1_091026.png
+.. image:: _static/img/fig1_091526.png
     :width: 800px
     :align: center
     :alt: The interpretable modules of Focal

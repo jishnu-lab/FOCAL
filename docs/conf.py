@@ -76,7 +76,7 @@ exclude_patterns = [
 html_theme = "furo"
 html_title = f"{project} {release}"
 html_static_path = ["_static"]
-html_logo = "_static/img/fig1_091026.png"
+html_logo = "_static/img/logo.png"
 
 nitpicky = False
 
