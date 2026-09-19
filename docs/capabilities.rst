@@ -1,7 +1,7 @@
-Seven capabilities
-==================
+User Guide
+==========
 
-Focal is organized around seven capabilities. They are the scientific contract for the
+Focal is organized around a set of capabilities. They are the scientific contract for the
 framework: the README and API are aligned with this list.
 
 1. **Discover cellular programs (CPs)** underlying contrasting cell states using interpretable
@@ -34,6 +34,6 @@ then embeds them in high-resolution GRNs to surface TF-centric regulons.
 Implementation note
 -------------------
 
-The pip-installable package under ``src/focal/`` is growing toward full coverage of all seven
+The pip-installable package under ``src/focal/`` is growing toward full coverage of all the
 capabilities. Episodic dynamics, smoothed GRN curves, enrichment orchestration, and state-specific
 GRN helpers are represented in the current API; see the :doc:`user API <user/index>` for module-level detail.

@@ -51,7 +51,7 @@ The framework is three modules in one package, one per product in the figure abo
 Getting started
 ---------------
 - :doc:`Install <installation>` the package, then read the
-  :doc:`seven capabilities <capabilities>` for what Focal does and why.
+  :doc:`User Guide <capabilities>` for what Focal does and why.
 - :doc:`Methods <methods>` gives the formal description of each capability.
 - The :doc:`notebooks <notebooks/index>` show the framework applied end to end on
   B-cell and T-cell multiome data.
