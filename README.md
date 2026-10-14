@@ -12,6 +12,25 @@ What it does:
 
 The full description of all capabilities, the methods, the user and developer API, and the rendered analysis notebooks are on Read the Docs: **[focal-gifs.readthedocs.io](https://focal-gifs.readthedocs.io/)**.
 
+## Installation
+
+Focal runs on top of stock [dictys](https://github.com/pinellolab/dictys) 1.1.0, which comes from
+conda (channel `lingfeiwang`), not PyPI, so `pip install .` alone gives a package that cannot be
+imported. Build the conda environment from the companion notebooks repository first, then install
+Focal into it (linux-64 only):
+
+```bash
+git clone --recurse-submodules https://github.com/jishnu-lab/FOCAL Focal
+conda env create -f Focal/docs/notebooks/environment.yml   # creates the `fftemporal` env
+conda activate fftemporal
+pip install -e Focal --no-deps
+```
+
+`--no-deps` keeps pip from re-resolving packages conda already placed. The environment covers the
+dictys-based dynamic GRN work; the custom dictys network stats Focal needs (`lcpm_tf`,
+`ChromatinGRNStat`) ship inside Focal (`focal.backends.dictys`), so dictys itself is not patched.
+Optional extras: `.[scanpy]`, `.[celloracle]`, `.[sklearn]` (TF clustering in episodic heatmaps).
+
 ## Notebooks
 
 The analysis notebooks live in a companion repository,

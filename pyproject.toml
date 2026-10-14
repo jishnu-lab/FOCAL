@@ -27,6 +27,7 @@ dependencies = [
 dev = ["pytest"]
 celloracle = ["celloracle"]
 scanpy = ["scanpy"]
+sklearn = ["scikit-learn"]
 docs = [
     "sphinx>=7,<9",
     "furo>=2024.8.6",
