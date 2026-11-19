@@ -1,8 +1,12 @@
-# Focal
+<h1 align="center">
+  <br>
+  <a href="https://focal-gifs.readthedocs.io/"><img src="docs/_static/img/focal_lens.png" alt="Focal" width="200"></a>
+  <br>
+  Focal
+  <br>
+</h1>
 
 **Focal** (Factor-Outcome Coupling for Assessment of Linkages) is an open-source toolkit that combines mechanistic models of networks with interpretable machine learning to focus dense state-specific and dynamic networks onto the regulatory components that govern cell fate decisions. It works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), matched or unmatched and provides GIFs (GRNs coupled with Interpretable Factor-outcomes).
-
-![Focal overview](docs/_static/img/fig1_091526.png)
 
 What it does:
 
