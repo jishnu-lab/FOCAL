@@ -1,134 +1,157 @@
 ---
 name: focal
 description: >
-  Focal (Factor-Outcome Coupling for Assessment of Linkages; formerly FIREFate) codebase and
-  analysis assistant. Use whenever the user mentions Focal, FOCAL, GIFs (GRNs coupled with
-  Interpretable Factor-outcomes), cellular programs (CPs), SLIDE latent factors as programs,
-  episodic GRNs / episodic enrichment, transition-window GRNs, TF force curves, force waves,
-  regulatory phases, EpisodeDynamics, TemporalManager, SmoothedCurvesGRN, TFForceWaves,
-  StateSpecificManager, in-silico TF KO on CPs, fate-bias stratification, the dictys
-  dynamic.h5 -> Focal chain, matched or unmatched scRNA + scATAC inputs (dictys JOINT=0/1,
-  base-GRN binlinking masks), github.com/jishnu-lab/FOCAL, or running Focal on a new dataset
-  (driver scripts, sbatch jobs, parameters, figures).
+  Run Focal (Factor-Outcome Coupling for Assessment of Linkages) on single-cell RNA + ATAC data:
+  build per-window dynamic GRNs along a pseudotime trajectory with dictys and turn them into TF
+  forces, attractor states and episodic GRNs. Use whenever the user mentions Focal / FOCAL,
+  dynamic or per-window GRNs, TF forces / force curves, attractor states along a trajectory,
+  episodic GRNs or episodic enrichment, the dictys dynamic.h5 -> Focal chain, unmatched scRNA +
+  scATAC paired by optimal transport (moscot GW pairing, coupling-weighted peaks, peak-to-gene),
+  matched multiome inputs, github.com/jishnu-lab/FOCAL, or running Focal on a new dataset
+  (driver scripts, batch jobs, parameters, figures).
 ---
 
-# Focal — codebase, API and how to run it
+# Focal: dynamic GRNs and TF forces from single-cell RNA + ATAC
 
-**Focal** = *Factor-Outcome Coupling for Assessment of Linkages* (formerly FIREFate). Focal
-couples mechanistic GRNs (dictys sliding-window networks, CellOracle state GRNs) with
-interpretable ML (SLIDE latent factors = cellular programs, CPs) to focus dense networks onto the
-regulatory components governing fate decisions; outputs are **GIFs** (GRNs coupled with
-Interpretable Factor-outcomes).
+Focal reads a dictys dynamic network (one GRN per sliding window of cells along a pseudotime
+trajectory) and turns it into **TF -> target forces** along each fate branch, the **attractor
+states** of the branch's cell-state composition, and **episodic GRNs** (forces that stay in the
+top-percentile tails over a stretch of pseudotime), which can be enriched for gene programs.
+This skill is the recipe for running it end to end on a new dataset; the CD8 T cell run below is
+the worked example.
 
-## Where things live
+Code: github.com/jishnu-lab/FOCAL (`src/focal/`); notebooks: github.com/jishnu-lab/FOCAL_notebooks
+(submodule at `docs/notebooks`); docs: focal-gifs.readthedocs.io.
 
-| Item | Value |
-|---|---|
-| Backend repo | github.com/jishnu-lab/FOCAL (`src/focal/`), branch `main` |
-| Companion notebooks | github.com/jishnu-lab/FOCAL_notebooks (git submodule at `docs/notebooks`) |
-| Docs | focal-gifs.readthedocs.io (Sphinx, `docs/`; notebooks rendered from stored outputs, never executed) |
-| Package | `focal` 0.1.0, Python >= 3.10, deps numpy/pandas/scipy/matplotlib/plotly/tqdm/joblib/networkx/h5py/pyyaml; extras `[scanpy]`, `[celloracle]`, `[docs]`, `[dev]` |
-| Environment | a conda env with dictys (not on PyPI) and Focal installed editable (`pip install -e .`); check `import focal; focal.__file__` points into your clone |
+## Setup
 
-Dataset paths for the notebooks come from `FOCAL_notebooks/temporal/datasets.yaml` via
-`focal.io.DatasetPaths.find()` / `.from_yaml()` — edit the yaml, never the notebooks.
+- One conda env with **dictys** (not on PyPI) and Focal installed editable
+  (`pip install -e .`); `import focal; focal.__file__` must point into your clone.
+- **The torch build must include your GPU's architecture.** dictys reconstructs each window with
+  pyro on the GPU. The conda-forge `pytorch 2.3.1 cuda118` build that a dictys env typically pins
+  stops at `sm_89`: on Hopper GPUs (H100 / H200 / GH200, `sm_90`) it sits at 0 % GPU utilisation
+  on one CPU core. Use the pip wheel instead (`pip install torch==2.4.1 --index-url
+  https://download.pytorch.org/whl/cu121`, NumPy-2 safe) and check that
+  `torch.cuda.get_arch_list()` contains your `sm_XX` before submitting window jobs.
+- Optimal-transport pairing needs an env with moscot + GPU JAX; run the solves on a large GPU
+  (an H200 solves 5-7k x 3-6k cell GW problems in minutes; on CPU they do not finish).
+- Run everything as batch jobs (one array task per window where possible), never on a login node.
 
-On an HPC cluster, run Focal through the scheduler (sbatch / srun), never on a login node.
+## 1. Choose the input route (decide this first)
 
-## Package layout (`src/focal/`)
+| Data | Route | Per-window TF -> target prior |
+|---|---|---|
+| **Matched multiome** (RNA + ATAC in the same cells) | dictys `JOINT=1`: per-window reads -> peaks -> footprints -> motifs | changes along pseudotime; binding curves available |
+| **Unmatched scRNA + scATAC** of the same system | **OT pairing** (section 2): each RNA cell gets ATAC partners from a GW coupling; window accessibility = coupling-weighted peak counts; motif scan + dictys linking | changes along pseudotime |
+| **RNA only** | a fixed ATAC-derived base GRN (e.g. CellOracle's), subset to each window's expressed genes | static; only the fitted weights move |
 
-```
-focal/
-  __init__.py          # exports TemporalManager, StateSpecificManager, EpisodeDynamics,
-                       #   SmoothedCurvesGRN, SmoothedCurvesChromatin, AlignTimeScales,
-                       #   TFForceWaves, TFForceValidation, StateFrequency, BaseManager, ora
-  base/                # BaseManager (results dict, output_dir, save/load), enrichment.py = ORA primitive
-  temporal/            # Temporal module
-    manager.py         #   TemporalManager, TrajectorySegments, run_episodic_enrichment/_construction
-    _episodes.py       #   EpisodeDynamics + episodic figures (dotplot, TF-target heatmap, co-regulation)
-    _curves.py         #   SmoothedCurvesGRN (Gaussian smoothing of dictys windows) + expression/regulation heatmaps
-    _forces.py         #   calculate_force_curves(_parallel), filter_edges_by_significance_and_direction
-    _source.py         #   TFForceSource (shared beta / TF-expression / force cache per branch)
-    _waves.py          #   TFForceWaves + force landscapes / heatmaps / clustering
-    _phases.py         #   RegulatoryPhases, ForceWavePhases, BindingPhases, order_links(_by_phase)
-    _reductions.py     #   mean_force, abs_max_force, softmax_peak, get_max_points, aggregate_max_points
-    _align.py          #   AlignTimeScales, plot_main_trajectory_nodes
-    _chromatin.py      #   SmoothedCurvesChromatin (TF binding score / OCR count per window)
-    _states.py         #   StateFrequency + state composition bars/curves
-    _validation.py     #   TFForceValidation (enriched links vs size-matched random null)
-  state_specific/      # State-specific module
-    manager.py         #   StateSpecificManager.enrich(...)
-    _enrichment.py     #   StateSpecificEnrichment, plot_tf_enrichment_bars, plot_episode_from_csvs
-    _slide.py          #   hypergeom_slide_grn_score, get_slide_grn_enrichment (TF-combo ORA), build/write_enrichment_table
-    _grn.py            #   combine_cluster_grn_links, load_celloracle_grn_tables, ...
-  cross_prediction/    # Cross-prediction module (scaffold; R/py code in Cross_prediction/)
-  backends/dictys/     # read_h5_file, reconstruct_subset/_range, stats lcpm_tf, ChromatinGRNStat
-  io/                  # DatasetPaths (yaml), load_lf_gene_colors, load_tf_target_links, load_episode_enrichment, qc_reads
-  utils/               # genes (get_tf_indices, check_if_gene_in_ndict), states, curves, parallel
-  cli/                 # reconstruct_networks, validate_inputs, expression_to_tsv, motifs_to_homer
+Details of every route and the file formats: `references/grn-inputs.md`.
+
+## 2. Unmatched RNA + ATAC: the OT-pairing route
+
+**a. Pair ATAC cells to RNA cells (moscot GW, per sample).** For every sample (e.g. condition x
+timepoint) solve a Gromov-Wasserstein `TranslationProblem` from ATAC (`obsm['X_lsi']`, dropping
+the LSI component that tracks sequencing depth) to RNA (`obsm['X_pca']`), so mass never crosses
+samples:
+
+```python
+from moscot.problems.cross_modality import TranslationProblem
+tp = TranslationProblem(adata_src=atac_s, adata_tgt=rna_s).prepare(
+    src_attr={"attr": "obsm", "key": "X_lsi"}, tgt_attr={"attr": "obsm", "key": "X_pca"})
+tp = tp.solve(epsilon=1e-3, alpha=1.0, scale_cost="mean")       # retry at epsilon 2e-3 if not converged
+(_, prob), = tp.problems.items()
+T = prob.solution.transport_matrix                                # ATAC cells x RNA cells
 ```
 
-There is **no plotting namespace**: every figure lives with its subject (`from focal.temporal
-import *` gives classes and plots). Managers record everything they build in `.results`.
+When both modalities carry state labels, use **fused GW** (`alpha < 1`) with a linear cost of 0
+for allowed (ATAC state, RNA state) pairs and 1 otherwise, so cells pair only within compatible
+states (the "constrained" coupling). Save `T` with its source and target cell names per sample.
 
-## The three modules
+**b. Coupling -> per-cell accessibility.** Normalise each RNA cell's column of `T` to a
+distribution over ATAC cells and keep its top-k partners (k = 50, renormalised): a sparse
+RNA x ATAC matrix `C`. A cell's inferred accessibility is `C[i] @ A`, with `A` the ATAC cell x peak
+counts; do not materialise the full product (it is nearly dense). Report the mass kept by top-k
+per sample as QC.
 
-Focal works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), **matched or
-unmatched**, and is three modules in one package:
+**c. Peak -> gene.** Distance-decay links from each peak to the genes whose TSS lies within
++- 250 kb, weight `exp(-d / 50 kb)` (a peaks x genes matrix). Inside the per-window chain, dictys
+`tssdist` + `linking` do the peak -> target linking.
 
-| Module | Product | What it does | Code |
-|---|---|---|---|
-| **State-specific** | Prioritized regulatory subnetworks | SLIDE discovers sparse cellular programs (CPs) separating two contrasting states; CPs are embedded in state-specific and fused cross-state GRNs (CellOracle) to surface TFs whose regulons are enriched for each program (TF-combination ORA), plus in-silico perturbation of the enriched TFs | `focal.state_specific`, `StateSpecificManager` |
-| **Temporal** | Phase-resolved dynamic regulation | Reads a dictys dynamic network along a pseudotime trajectory: smoothed expression / regulation / beta curves, TF forces, force waves and regulatory phases from pseudotemporal clustering, episodic GRNs (direction-invariant forces in the top-percentile tails) and CP enrichment against them, validation against size-matched random links, chromatin binding curves | `focal.temporal`, `TemporalManager` |
-| **Cross-prediction** | Fate predisposition by transfer learning | CPs learned from fate-switching perturbations (TF-KO Perturb-seq) vs controls score uncommitted cells in unperturbed data by predicted fate bias | `focal.cross_prediction` (scaffold), `Cross_prediction/` (R + notebook) |
+**d. Motif scan (once).** Score every peak against a species-matched motif database (e.g.
+HOCOMOCO v11) with FIMO on the GPU (tangermeme / torch FIMO, p < 1e-4); output a sparse
+peak x motif matrix and a motif -> TF-symbol table. About 1.5 min for 134k peaks x 356 motifs on
+one GH200.
 
-## Matched vs unmatched ATAC (decide this first)
+**e. Windows.** STREAM (or any tree with a per-cell branch and position) -> dictys
+`trajectory.fromdist` -> `traj_node.h5`, `point.fromdist` -> `traj_cell_rna.h5` (cells in sorted
+name order), then `dictys.dynamic.subsets_rna(ncell, noverlap, dmax)` -> `tmp_dynamic/Subset<k>/`.
+It works on a dense cell x cell distance matrix, so ~23k cells take ~25 min and ~11 GB on one
+core: give the job the time.
 
-The data type decides how the upstream GRNs are built; everything Focal does downstream of
-`dynamic.h5` / the CellOracle GRN tables is the same. Full steps in `references/grn-inputs.md`.
+**f. Per-window mask.** For each window: raw counts of its cells (`expression.tsv.gz`, genes
+detected in >= 10 cells); accessibility = (mean of `C` over the window's cells) @ `A`, top 30,000
+peaks; write it as dictys' `wellington.tsv.gz` (region x TF_motif, value = accessibility) next to
+`homer.tsv.gz` (motif scores) and run the native chain `binding -> tssdist -> linking ->
+binlinking(n=20)` -> `binlinking.tsv.gz` (the TF x target mask).
 
-- **Matched** (multiome, scRNA + scATAC in the same cells; e.g. the B-cell system): dictys runs
-  with `JOINT=1`; each pseudotime window has its own ATAC reads -> macs2 peaks -> wellington
-  footprints -> homer motifs -> `binding`/`tssdist`/`linking`/`binlinking`, so the TF -> target
-  prior changes along pseudotime. Per-window footprints also give **chromatin binding curves**
-  (`SmoothedCurvesChromatin`, `BindingPhases`).
-- **Unmatched, ATAC cells available** (scRNA and scATAC from different cells of the same
-  system): dictys `JOINT=0`. ATAC cells are placed on the same trajectory (`traj_cell_atac.h5`,
-  `coord_atac.tsv.gz`) and `dictys.dynamic.subsets_atac` assigns them to each RNA window; the
-  per-window chromatin chain then runs as in the matched case, so binding curves still exist.
-- **Unmatched, base GRN only** (RNA-only cells, ATAC from a reference; what the T-cell Perturb-seq
-  system used): windows are cut from RNA only (`subsets_rna`); one fixed binary TF x target mask
-  from an ATAC-derived base GRN (CellOracle format, collapsed over peaks) is subset to each
-  window's expressed genes and written as that window's `binlinking.tsv.gz`, then
-  `dictys.network.reconstruct` runs as usual. The prior is static, only the expression-fitted
-  weights change along pseudotime, and there are **no chromatin binding curves**.
-- State-specific GRNs (CellOracle) take either a base GRN from matched/unmatched scATAC peaks or
-  CellOracle's prebuilt promoter base GRN; the T-cell system used the murine ATAC base GRN.
+**g. Per-window network.** `dictys.network.reconstruct` on the GPU, then `normalize` ->
+`net_nweight`, `indirect` -> `net_iweight`, `normalize(net_iweight)` -> `net_inweight`, then
+`dictys.network.tofile(..., dynamic=True)` -> `output/dynamic.h5`. `tofile` needs both
+`net_nweight` and `net_inweight`, or the total-effect network `w_in` is all zero. Windows are
+independent: spread them over every GPU available; a lock file per window lets several jobs
+share one list without computing a window twice.
 
-## Routing
+## 3. Forces and attractor states per fate branch
 
-| Request | Read |
+For each branch (root -> leaf of the tree), order the windows on the path by distance from the
+root and take the state composition of each window's cells. Forces use Focal's definition
+
+    F_link(w) = sign(beta) * exp(log10|beta| + log10 TF_expr),   TF_expr = log2(CPM + 1) in the window
+
+on the total-effect network (`net_iweight`), over the top 20,000 links by max |F|. Smooth along
+window position (Gaussian, sigma 1.5 windows) and compare
+
+- the **total force** (sum of |F| over the links), drawn black, with
+- the **composition speed** v = 0.5 * sum_states |dp/dx|, drawn red; its local minima are the
+  **attractor states** (quasi-stationary composition).
+
+Score each branch: Spearman of total force, |d total force / dx| and link-peak density against v;
+distance from each v minimum to the nearest force minimum and peak; the dominant state at each
+attractor; whether the last attractor is the branch's end state; agreement with an expected
+state order. Colour states as in the dataset's own UMAP.
+
+Episodic GRNs and program enrichment on the same `dynamic.h5`: `references/episodic-pipeline.md`.
+
+## Worked example: CD8 T cells in acute vs chronic LCMV
+
+Unmatched longitudinal scRNA-seq and scATAC-seq of CD8 T cells after LCMV Armstrong (acute,
+memory) and Clone 13 (chronic, exhaustion) infection, days 8, 15 and 30.
+
+| Step | Setting / size |
 |---|---|
-| Run/extend episodic enrichment, episodes, forces, parameters, caveats | `references/episodic-pipeline.md` |
-| API details, managers, file formats, notebooks, install | `references/codebase.md` |
-| Building `dynamic.h5` / state GRNs from matched or unmatched RNA + ATAC (dictys, CellOracle, sbatch steps) | `references/grn-inputs.md` |
+| Trajectory | joint non-naive Arm + Cl13 STREAM2 tree, 23,146 cells, root in the day-8 pool; branches root -> **Mem** and root -> **Exh-Term** |
+| Pairing | state-constrained fused GW per sample (6 samples); top-50 partners keep a median 0.79-1.00 of each cell's mass; 35,121 ATAC cells, 133,795 peaks |
+| Motifs | HOCOMOCO v11 mouse, 356 motifs, 5.4 M hits (torch FIMO on a GPU) |
+| Windows | 116 windows of 1,042 cells (overlap 782) |
+| Masks | ~190 TFs x ~10,000 targets per window, density ~10 % |
+| Networks | reconstruct spread over GH200, H200, A100 and A40 GPUs |
+| Read-out | per branch: composition bars, black total force, red composition speed and its minima; a branch metrics table |
+
+## 4. To do: state-specific GRNs from the same inputs
+
+The state-specific module builds one GRN per state with CellOracle from a base GRN. Implement the
+same matched / unmatched handling there: for unmatched data, a state's accessibility = (mean of
+`C` over the state's RNA cells) @ `A`, then the motif scan + dictys linking chain (or CellOracle
+on the state's accessible peaks) gives a state-specific prior from the data's own ATAC rather
+than a reference base GRN.
+
+## References
+
+| Need | Read |
+|---|---|
+| Building `dynamic.h5` for each input route, file formats | `references/grn-inputs.md` |
+| Episodic GRNs, episodic enrichment, parameters | `references/episodic-pipeline.md` |
+| API, managers, dictys objects, notebooks, install | `references/codebase.md` |
 | Force / ORA / invariance math | `references/math-operators.md` |
 
-## Style
-
-Editable text in figures (`pdf.fonttype = 42`, `svg.fonttype = 'none'`). In prose say
-"top-percentile tails", "nominate TFs", "downstream targets", "contrasting" (not
-"discriminative"), "modules" (not "API products").
-
-## Gotchas learned the hard way
-
-- `TemporalManager.build_transition_window(links=...)` raises (Series vs DataFrame) — the
-  transition-window figures use the notebooks' hand path (`get_beta_curves` -> `calculate_force_curves`).
-- `run_episodic_construction` writes `episode_<i>.parquet`; `get_episodic_grn_subset` globs
-  `episode_<i>.pkl` — build the edges-by-episode table yourself from the parquets.
-- Episodic tables made before 2026-08-31 are wrong (force x wrong TF expression; episode-1
-  expression reused) — regenerate, never reuse `legacy_*` folders.
-- No FDR anywhere; notebooks use raw-p cutoffs (0.003 / 0.01 / 0.05 / 0.08) and >= 2 program
-  targets and >= 2 downstream targets per TF for display.
-- Regulator families `ZNF*` / `ZBTB*` are dropped inside `build_episode_grn` (hard-coded).
-- dictys gene names must match the program's names exactly (e.g. upper-case human symbols).
+Figures: keep text editable (`pdf.fonttype = 42`, `svg.fonttype = 'none'`).

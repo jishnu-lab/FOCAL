@@ -70,11 +70,3 @@ TF order in the dotplot = peak episode then peak ES (a display rule, not a stati
 | B cell PB / GC (Fig3_2) | (1,2) / (1,3) | 20 | 5 | 0.001 | 98 | 1e-3 | w |
 | B cell GC, KO programs (Fig5) | (1,3) | 40 | 5 | 0.001 | 98 | 1e-3 | w |
 | T cell | (0,1) | 24 | 4 | 0.002 | 98 | 1e-3 | w |
-
-## Known caveats
-
-Fixed 2026-08-31: force x wrong TF expression; episode-1 expression reused for every episode.
-Still open: `build_transition_window(links=...)` raises; parquet/pkl mismatch in
-`get_episodic_grn_subset`; `get_beta_curves` returns the TF x target cross product (re-filter with
-`.loc[links]`); constant edges get p = 0 from the t-test; `episodic_composition()` is a stub;
-chromatin smoothing propagates NaNs; `classify_tf_global_activity` crashes on zero-variance input.
