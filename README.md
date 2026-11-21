@@ -57,8 +57,8 @@ The submodule is optional — the package installs and the API docs build withou
 ## Claude Code skill
 
 The repository ships a [Claude Code](https://claude.com/claude-code) skill at
-[`.claude/skills/focal/`](.claude/skills/focal/SKILL.md) covering the package layout, entry
-points, the episodic GRN and enrichment pipeline, the force and ORA math, and known gotchas.
+[`.claude/skills/focal/`](.claude/skills/focal/SKILL.md) covering the three modules, building
+the GRN inputs from matched or unmatched RNA + ATAC, entry points, the episodic GRN and enrichment pipeline, the force and ORA math, and known gotchas.
 Claude Code loads it automatically when run inside a clone of this repository. To use it in
 other projects, copy the folder to `~/.claude/skills/focal/`.
 

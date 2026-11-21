@@ -9,7 +9,7 @@ Code: `focal.temporal._episodes.EpisodeDynamics`.
   `num_points` on one branch (`TemporalManager._episode_slice(e, q) = slice((e-1)q, eq)`,
   1-based). Convention: 5 points per episode; a branch (0,x) at 20 points = 4 episodes, a full
   range (1,x) at 40 points = 8 episodes. Episodes are NOT the link-peak clusters / waves from
-  capability 3 — those are a separate analysis (`TFForceWaves`, phases).
+  the temporal force-wave analysis — those are separate (`TFForceWaves`, phases).
 - **Episodic edge**: present in the episode (row sum != 0), regulator not `ZNF*`/`ZBTB*`,
   >= 3 non-zero points, one-sample t-test p < 0.05 then p < `pval_threshold` (1e-3), sign never
   flips (direction invariance).

@@ -7,7 +7,8 @@ description: >
   episodic GRNs / episodic enrichment, transition-window GRNs, TF force curves, force waves,
   regulatory phases, EpisodeDynamics, TemporalManager, SmoothedCurvesGRN, TFForceWaves,
   StateSpecificManager, in-silico TF KO on CPs, fate-bias stratification, the dictys
-  dynamic.h5 -> Focal chain, github.com/jishnu-lab/FOCAL, or running Focal on a new dataset
+  dynamic.h5 -> Focal chain, matched or unmatched scRNA + scATAC inputs (dictys JOINT=0/1,
+  base-GRN binlinking masks), github.com/jishnu-lab/FOCAL, or running Focal on a new dataset
   (driver scripts, sbatch jobs, parameters, figures).
 ---
 
@@ -42,7 +43,7 @@ focal/
                        #   SmoothedCurvesGRN, SmoothedCurvesChromatin, AlignTimeScales,
                        #   TFForceWaves, TFForceValidation, StateFrequency, BaseManager, ora
   base/                # BaseManager (results dict, output_dir, save/load), enrichment.py = ORA primitive
-  temporal/            # FocalTemporal: capabilities 3, 4, dynamic 5
+  temporal/            # Temporal module
     manager.py         #   TemporalManager, TrajectorySegments, run_episodic_enrichment/_construction
     _episodes.py       #   EpisodeDynamics + episodic figures (dotplot, TF-target heatmap, co-regulation)
     _curves.py         #   SmoothedCurvesGRN (Gaussian smoothing of dictys windows) + expression/regulation heatmaps
@@ -55,12 +56,12 @@ focal/
     _chromatin.py      #   SmoothedCurvesChromatin (TF binding score / OCR count per window)
     _states.py         #   StateFrequency + state composition bars/curves
     _validation.py     #   TFForceValidation (enriched links vs size-matched random null)
-  state_specific/      # FocalStateSpecific: capabilities 2, static 5
+  state_specific/      # State-specific module
     manager.py         #   StateSpecificManager.enrich(...)
     _enrichment.py     #   StateSpecificEnrichment, plot_tf_enrichment_bars, plot_episode_from_csvs
     _slide.py          #   hypergeom_slide_grn_score, get_slide_grn_enrichment (TF-combo ORA), build/write_enrichment_table
     _grn.py            #   combine_cluster_grn_links, load_celloracle_grn_tables, ...
-  cross_prediction/    # FocalCrossPrediction: capability 7 (scaffold; R/py code in Cross_prediction/)
+  cross_prediction/    # Cross-prediction module (scaffold; R/py code in Cross_prediction/)
   backends/dictys/     # read_h5_file, reconstruct_subset/_range, stats lcpm_tf, ChromatinGRNStat
   io/                  # DatasetPaths (yaml), load_lf_gene_colors, load_tf_target_links, load_episode_enrichment, qc_reads
   utils/               # genes (get_tf_indices, check_if_gene_in_ndict), states, curves, parallel
@@ -70,13 +71,39 @@ focal/
 There is **no plotting namespace**: every figure lives with its subject (`from focal.temporal
 import *` gives classes and plots). Managers record everything they build in `.results`.
 
-## The seven capabilities
+## The three modules
 
-1 Discover CPs (SLIDE LFs) · 2 state-specific + cross-state GRNs · 3 transition-window GRNs and
-waves of TF regulation · 4 episodic GRNs (temporally invariant forces in the top-percentile
-tails) · 5 enrichment of dynamic/static TF activity within each CP (hypergeometric ORA) ·
-6 in-silico perturbation of enriched TFs · 7 fate-bias stratification by transfer of KO-vs-control
-CPs. **Focal-NP** = the network-prioritization workflow combining them.
+Focal works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), **matched or
+unmatched**, and is three modules in one package:
+
+| Module | Product | What it does | Code |
+|---|---|---|---|
+| **State-specific** | Prioritized regulatory subnetworks | SLIDE discovers sparse cellular programs (CPs) separating two contrasting states; CPs are embedded in state-specific and fused cross-state GRNs (CellOracle) to surface TFs whose regulons are enriched for each program (TF-combination ORA), plus in-silico perturbation of the enriched TFs | `focal.state_specific`, `StateSpecificManager` |
+| **Temporal** | Phase-resolved dynamic regulation | Reads a dictys dynamic network along a pseudotime trajectory: smoothed expression / regulation / beta curves, TF forces, force waves and regulatory phases from pseudotemporal clustering, episodic GRNs (direction-invariant forces in the top-percentile tails) and CP enrichment against them, validation against size-matched random links, chromatin binding curves | `focal.temporal`, `TemporalManager` |
+| **Cross-prediction** | Fate predisposition by transfer learning | CPs learned from fate-switching perturbations (TF-KO Perturb-seq) vs controls score uncommitted cells in unperturbed data by predicted fate bias | `focal.cross_prediction` (scaffold), `Cross_prediction/` (R + notebook) |
+
+## Matched vs unmatched ATAC (decide this first)
+
+The data type decides how the upstream GRNs are built; everything Focal does downstream of
+`dynamic.h5` / the CellOracle GRN tables is the same. Full steps in `references/grn-inputs.md`.
+
+- **Matched** (multiome, scRNA + scATAC in the same cells; e.g. the B-cell system): dictys runs
+  with `JOINT=1`; each pseudotime window has its own ATAC reads -> macs2 peaks -> wellington
+  footprints -> homer motifs -> `binding`/`tssdist`/`linking`/`binlinking`, so the TF -> target
+  prior changes along pseudotime. Per-window footprints also give **chromatin binding curves**
+  (`SmoothedCurvesChromatin`, `BindingPhases`).
+- **Unmatched, ATAC cells available** (scRNA and scATAC from different cells of the same
+  system): dictys `JOINT=0`. ATAC cells are placed on the same trajectory (`traj_cell_atac.h5`,
+  `coord_atac.tsv.gz`) and `dictys.dynamic.subsets_atac` assigns them to each RNA window; the
+  per-window chromatin chain then runs as in the matched case, so binding curves still exist.
+- **Unmatched, base GRN only** (RNA-only cells, ATAC from a reference; what the T-cell Perturb-seq
+  system used): windows are cut from RNA only (`subsets_rna`); one fixed binary TF x target mask
+  from an ATAC-derived base GRN (CellOracle format, collapsed over peaks) is subset to each
+  window's expressed genes and written as that window's `binlinking.tsv.gz`, then
+  `dictys.network.reconstruct` runs as usual. The prior is static, only the expression-fitted
+  weights change along pseudotime, and there are **no chromatin binding curves**.
+- State-specific GRNs (CellOracle) take either a base GRN from matched/unmatched scATAC peaks or
+  CellOracle's prebuilt promoter base GRN; the T-cell system used the murine ATAC base GRN.
 
 ## Routing
 
@@ -84,13 +111,14 @@ CPs. **Focal-NP** = the network-prioritization workflow combining them.
 |---|---|
 | Run/extend episodic enrichment, episodes, forces, parameters, caveats | `references/episodic-pipeline.md` |
 | API details, managers, file formats, notebooks, install | `references/codebase.md` |
+| Building `dynamic.h5` / state GRNs from matched or unmatched RNA + ATAC (dictys, CellOracle, sbatch steps) | `references/grn-inputs.md` |
 | Force / ORA / invariance math | `references/math-operators.md` |
 
 ## Style
 
 Editable text in figures (`pdf.fonttype = 42`, `svg.fonttype = 'none'`). In prose say
 "top-percentile tails", "nominate TFs", "downstream targets", "contrasting" (not
-"discriminative"), "capabilities" (not "API products").
+"discriminative"), "modules" (not "API products").
 
 ## Gotchas learned the hard way
 
