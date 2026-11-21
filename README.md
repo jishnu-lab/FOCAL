@@ -54,6 +54,14 @@ git submodule update --init docs/notebooks
 
 The submodule is optional — the package installs and the API docs build without it.
 
+## Claude Code skill
+
+The repository ships a [Claude Code](https://claude.com/claude-code) skill at
+[`.claude/skills/focal/`](.claude/skills/focal/SKILL.md) covering the package layout, entry
+points, the episodic GRN and enrichment pipeline, the force and ORA math, and known gotchas.
+Claude Code loads it automatically when run inside a clone of this repository. To use it in
+other projects, copy the folder to `~/.claude/skills/focal/`.
+
 ## Documentation
 
 User guide, API reference and the rendered notebooks are built with Sphinx and hosted on
