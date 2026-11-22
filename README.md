@@ -1,107 +1,91 @@
-<h1 align="center">
-  <br>
+# Focal: focusing gene regulatory networks onto the regulators of cell fate
+
+[Documentation](https://focal-gifs.readthedocs.io/) | [Notebooks](https://github.com/jishnu-lab/FOCAL_notebooks) | [Cite](#citation)
+
+<p align="center">
   <a href="https://focal-gifs.readthedocs.io/"><img src="docs/_static/img/focal_lens.png" alt="Focal" width="200"></a>
-  <br>
-  Focal
-  <br>
-</h1>
+</p>
 
-**Focal** (Factor-Outcome Coupling for Assessment of Linkages) is an open-source toolkit that combines mechanistic models of networks with interpretable machine learning to focus dense state-specific and dynamic networks onto the regulatory components that govern cell fate decisions. It works on single-cell RNA and ATAC data (sc/snRNA-seq, scATAC-seq), matched or unmatched and provides GIFs (GRNs coupled with Interpretable Factor-outcomes).
+Gene regulatory networks inferred from single-cell data are dense: thousands of transcription factor–target links, most of which have little to do with the decision a cell is making. Focal (Factor-Outcome Coupling for Assessment of Linkages) narrows these networks down to the regulators that matter for a given fate decision. It does this by coupling mechanistic network models with interpretable machine learning, so that every prioritised link can be traced back to both a regulatory mechanism and a measurable difference between cell states. We call the result GIFs: GRNs coupled with Interpretable Factor-outcomes.
 
-What it does:
+Focal works on single-cell RNA and ATAC data (sc/snRNA-seq and scATAC-seq), whether the two were measured in the same cells or in separate experiments.
 
-- **Prioritized regulatory subnetworks.** Interpretable ML discovers sparse cellular programs (CPs) that separate contrasting cell states, and embeds them in state-specific and cross-state GRNs to surface the transcription factors (TFs) whose regulons are enriched for each program, including in-silico perturbation of the enriched TFs.
-- **Phase-resolved dynamic regulation.** Transition-window and episodic GRNs along pseudotime assign TF–target edges to regulatory phases inferred from pseudotemporal clustering, ordering waves of TF regulation and retaining the forces that stay invariant within each episode.
-- **TF forces and attractor states along fate branches.** Per-window dynamic GRNs give TF–target forces along each branch of a trajectory; the total force is read against the speed at which the cell-state composition changes, whose minima mark the attractor states of the branch.
-- **Fate predisposition by transfer learning.** CPs learned from fate-switching perturbations (e.g. TF knockouts) versus controls stratify uncommitted populations in unperturbed data by their predicted fate bias.
+## What Focal does
 
-## Inputs: matched or unmatched RNA + ATAC
+Focal is organised as three modules that can be used on their own or together.
 
-The dynamic GRNs are built with dictys, one network per sliding window of cells along pseudotime. How each window gets its TF–target prior depends on the data:
+The **state-specific** module learns sparse cellular programs that separate contrasting cell states, places them in state-specific and cross-state networks, and identifies the transcription factors whose regulons are enriched for each program. Those factors can then be perturbed in silico to see how the programs respond.
 
-| Data | Route | Per-window prior |
-|---|---|---|
-| **Matched multiome** (RNA + ATAC in the same cells) | dictys on the window's own reads: peaks, footprints, motifs | changes along pseudotime |
-| **Unmatched scRNA + scATAC** of the same system | optimal-transport pairing: a Gromov-Wasserstein coupling (moscot, solved per sample) gives every RNA cell its ATAC partners; window accessibility = coupling-weighted peak counts, then motif scan and peak-to-gene linking | changes along pseudotime |
-| **RNA only** | a fixed ATAC-derived base GRN, subset to each window's expressed genes | static; only the fitted weights move |
+The **temporal** module follows regulation along a trajectory. It builds one network per sliding window of cells in pseudotime and converts the networks into forces that each transcription factor exerts on its targets. From these it derives transition-window and episodic networks, orders the waves of regulation into phases, and compares the total regulatory force along each fate branch with how fast the cell-state composition is changing. The points where composition slows down mark the attractor states of the branch.
 
-The step-by-step recipe for each route, with file formats and parameters, is in the [Claude Code skill](.claude/skills/focal/SKILL.md) and its [`references/grn-inputs.md`](.claude/skills/focal/references/grn-inputs.md). The same matched / unmatched handling for the state-specific GRNs is planned.
-
-The full description of all capabilities, the methods, the user and developer API, and the rendered analysis notebooks are on Read the Docs: **[focal-gifs.readthedocs.io](https://focal-gifs.readthedocs.io/)**.
+The **cross-prediction** module transfers programs learned from fate-switching perturbations, such as transcription factor knockouts, to unperturbed data, where they stratify uncommitted cells by their predicted fate bias.
 
 ## Installation
 
-Focal runs on top of stock [dictys](https://github.com/pinellolab/dictys) 1.1.0, which comes from
-conda (channel `lingfeiwang`), not PyPI, so `pip install .` alone gives a package that cannot be
-imported. Build the conda environment from the companion notebooks repository first, then install
-Focal into it (linux-64 only):
+Focal runs on top of [dictys](https://github.com/pinellolab/dictys) 1.1.0, which is distributed through conda (channel `lingfeiwang`) and not through PyPI. Installing Focal with pip alone therefore gives a package that cannot be imported. Create the conda environment from the companion notebooks repository first, then install Focal into it. Linux (x86-64) is supported.
 
 ```bash
 git clone --recurse-submodules https://github.com/jishnu-lab/FOCAL Focal
-conda env create -f Focal/docs/notebooks/environment.yml   # creates the `fftemporal` env
+conda env create -f Focal/docs/notebooks/environment.yml   # creates the `fftemporal` environment
 conda activate fftemporal
 pip install -e Focal --no-deps
 ```
 
-`--no-deps` keeps pip from re-resolving packages conda already placed. The environment covers the
-dictys-based dynamic GRN work; the custom dictys network stats Focal needs (`lcpm_tf`,
-`ChromatinGRNStat`) ship inside Focal (`focal.backends.dictys`), so dictys itself is not patched.
-Optional extras: `.[scanpy]`, `.[celloracle]`, `.[sklearn]` (TF clustering in episodic heatmaps).
+The `--no-deps` flag stops pip from re-resolving packages that conda has already installed. Focal does not patch dictys: the additional network statistics it needs are included in `focal.backends.dictys`. Optional extras are available as `.[scanpy]`, `.[celloracle]` and `.[sklearn]`.
 
-## Notebooks
+## Input data
 
-The analysis notebooks live in a companion repository,
-[**FOCAL_notebooks**](https://github.com/jishnu-lab/FOCAL_notebooks), and are
-pulled in here as a git submodule at `docs/notebooks` so the documentation can render
-them. Clone with them:
+The temporal module needs a prior for which transcription factors can regulate which genes in each window. Where that prior comes from depends on the data you have.
 
-```bash
-git clone --recurse-submodules https://github.com/jishnu-lab/FOCAL
-```
+| Data | How the prior is built | Does it change along pseudotime? |
+|---|---|---|
+| Matched multiome (RNA and ATAC from the same cells) | dictys is run on each window's own reads: peaks, footprints and motifs | Yes |
+| Unmatched scRNA-seq and scATAC-seq of the same system | RNA and ATAC cells are paired by optimal transport (a Gromov-Wasserstein coupling solved per sample with moscot). Each window's accessibility is the coupling-weighted sum of ATAC peak counts, followed by a motif scan and peak-to-gene linking | Yes |
+| RNA only | A fixed ATAC-derived base network is restricted to the genes expressed in each window | No, only the fitted weights change |
 
-If you already cloned without them:
+The same handling of matched and unmatched data is planned for the state-specific module. A step-by-step recipe for each route, including file formats and parameters, is in [`references/grn-inputs.md`](.claude/skills/focal/references/grn-inputs.md).
+
+## Tutorials
+
+The analysis notebooks are kept in a companion repository, [FOCAL_notebooks](https://github.com/jishnu-lab/FOCAL_notebooks), which is included here as a git submodule at `docs/notebooks`. If you cloned without `--recurse-submodules`, fetch it with:
 
 ```bash
 git submodule update --init docs/notebooks
 ```
 
-The submodule is optional — the package installs and the API docs build without it.
-
-What is in it:
-
-| Folder | Contents |
+| Folder | What it covers |
 |---|---|
-| `state_specific/` | state-specific and cross-state GRNs, program enrichment, in-silico TF perturbation |
-| `temporal/` | trajectories, dynamic GRNs, transition-window and episodic GRNs, force waves and phases |
-| `cross_prediction/` | fate-bias stratification by transfer of perturbation-derived programs |
-| `cd8tcells/` | worked example on unmatched data: CD8 T cells in acute vs chronic LCMV infection. `traj_joint_G_focal.ipynb` shows the joint trajectory, its memory and exhaustion branches and the windows laid along them; `dynamic_focal_forces_G.ipynb` shows the total force against the composition speed and the attractor states per branch |
+| `state_specific/` | State-specific and cross-state networks, program enrichment and in-silico perturbation |
+| `temporal/` | Trajectories, dynamic networks, transition-window and episodic networks, force waves and phases |
+| `cross_prediction/` | Fate-bias stratification with programs transferred from perturbation data |
+| `cd8tcells/` | A complete run on unmatched data: CD8 T cells during acute and chronic LCMV infection, from the joint trajectory and its memory and exhaustion branches to the forces and attractor states along each branch |
 
-## Claude Code skill
-
-The repository ships a [Claude Code](https://claude.com/claude-code) skill at
-[`.claude/skills/focal/`](.claude/skills/focal/SKILL.md): a recipe for running Focal end to end
-on a new dataset. It covers choosing the input route (matched multiome, unmatched RNA + ATAC
-paired by optimal transport, or RNA only), building the per-window dynamic GRNs, TF forces and
-attractor states per fate branch, and episodic GRNs with program enrichment, with the CD8 T cell
-run as the worked example.
-Claude Code loads it automatically when run inside a clone of this repository. To use it in
-other projects, copy the folder to `~/.claude/skills/focal/`.
+The submodule is optional. The package installs and the API documentation builds without it.
 
 ## Documentation
 
-User guide, API reference and the rendered notebooks are built with Sphinx and hosted on
-**Read the Docs**. The build is configured by `.readthedocs.yml`, which also tells Read the Docs to
-check out the `docs/notebooks` submodule. Point a project at this repository at
-[readthedocs.org](https://readthedocs.org/); with the slug `focal` the site lands at
-[https://focal-gifs.readthedocs.io/](https://focal-gifs.readthedocs.io/).
-
-To build the HTML docs locally:
+The user guide, methods, API reference and rendered notebooks are hosted on Read the Docs at [focal-gifs.readthedocs.io](https://focal-gifs.readthedocs.io/). To build the documentation locally:
 
 ```bash
-git submodule update --init docs/notebooks   # optional; without it the API docs still build
+git submodule update --init docs/notebooks   # optional
 pip install ".[docs]"
 sphinx-build -b html docs docs/_build/html
 ```
 
-Notebooks are rendered from their stored outputs and are never executed
-(`nb_execution_mode = "off"`), so the build needs no data and no GPU.
+Notebooks are rendered from their stored outputs and are never executed during the build, so no data or GPU is required.
+
+## Using Focal with Claude Code
+
+The repository includes a [Claude Code](https://claude.com/claude-code) skill at [`.claude/skills/focal/`](.claude/skills/focal/SKILL.md). It is a recipe for running Focal end to end on a new dataset: choosing the input route, building the per-window networks, computing forces and attractor states for each fate branch, and running episodic network enrichment, with the CD8 T cell analysis as the worked example. Claude Code loads the skill automatically inside a clone of this repository. To use it elsewhere, copy the folder to `~/.claude/skills/focal/`.
+
+## License
+
+Focal is released under the [MIT License](LICENSE).
+
+## Citation
+
+If you use Focal in your work, please cite this repository. A reference will be added here once a publication is available.
+
+## Contact
+
+Questions, bug reports and feature requests are welcome through the [issue tracker](https://github.com/jishnu-lab/FOCAL/issues).
